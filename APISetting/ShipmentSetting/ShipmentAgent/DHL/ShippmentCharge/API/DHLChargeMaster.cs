@@ -21,7 +21,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.DHL.ShippmentCha
 
             try
             {
-
+               
                 string ShipperPostCode = finalAgentMaster.GetAccountMasters[0].PostalCode;
                 string fromCity = finalAgentMaster.GetAccountMasters[0].City;
 
@@ -118,25 +118,37 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.DHL.ShippmentCha
                     DataList.Add(new ChargeResponseDatum()
                     {
                         AgentCode = "DHL",
-                        Currency = DeclaredCurrency,
-                        TotalCharges = 0,
-                        TotalDuitableCharges = 0,
-                        TotalTax = 0,
+                        Currency = DeclaredCurrency,                       
                         AgentStatus = false,
                         Message = dHL_Details.ConditionData.ToString()
                     });
                 }
                 else
                 {
-
+                    double DDPCharges = 0;
+                    if (chargesRootobject.Charges.Header.DeliveryTerms.ToUpper().Equals("DDP"))
+                    {
+                        DDPCharges = 750;
+                    }
+                    double ExportDeclaration = 1450;
+                    double GSTCharges = 261;
                     DataList.Add(new ChargeResponseDatum()
                     {
                         AgentCode = "DHL",
                         Currency = "INR",
-                        TotalCharges = dHL_Details.ShippingCharge,
-                        TotalDuitableCharges = 0,
-                        TotalTax = dHL_Details.TotalTaxAmount,
+
+                        netFreight = dHL_Details.ShippingCharge,
+                        FuelSurcharges = 0,
+                        OverSizePiece = 0,
+                        ExportDeclaration = ExportDeclaration,
+                        DDPCharges = DDPCharges,
+                        GST = dHL_Details.TotalTaxAmount + GSTCharges,
+                        FinalFreight = Convert.ToDouble(dHL_Details.ShippingCharge+ DDPCharges) + ExportDeclaration + GSTCharges,
+
+
+                       
                         AgentStatus = true,
+                        Description= Api_Response_str,
                         Message = "Available-" + chargesRootobject.Charges.Header.Currency
                     }) ;
                     masterChargeResponse.success = true;

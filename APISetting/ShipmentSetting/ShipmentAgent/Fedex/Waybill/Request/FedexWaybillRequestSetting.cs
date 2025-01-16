@@ -1,6 +1,7 @@
 ﻿using static WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Request.MasterShippment;
 using WEB_API_2024.Models.Database.ShipServices.Master;
 using System.Data;
+using WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API;
 
 namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.Waybill.Request
 {
@@ -134,7 +135,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.Waybill.Re
                 labelResponseOptions = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("labelResponseOptions").ToLower())).First().Value,
                 accountNumber = new FedexWaybillMasterRequest.FedexWaybillAccountnumber
                 {
-                    value = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("AccountNumber").ToLower())).First().Value
+                    value = FedexTokenMaster.GetFedexAccountNo(finalAgentMaster, shippment.ShipmentMaster.Header.LocationCode)
                 },
                 requestedShipment = new FedexWaybillMasterRequest.FedexWaybillRequestedshipment()
                 {

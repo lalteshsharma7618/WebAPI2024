@@ -24,7 +24,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentC
             {
                 rateSortOrder = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("rateSortOrder").ToLower())).First().Value,
                 returnLocalizedDateTime = true,
-                returnTransitTimes = false
+                returnTransitTimes = true
             };
 
             FCMR_Shipper fCMR_Shipper = new FCMR_Shipper();
@@ -105,7 +105,8 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentC
             fCMR_Requestedshipment.requestedPackageLineItems = fCMR_Requestedpackagelineitem;
             fCMR_Requestedshipment.rateRequestType = new List<string>()
             {
-                finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("rateRequestType").ToLower())).First().Value
+                finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("rateRequestType").ToLower())).First().Value,
+                 //"ACCOUNT",
             };
             fCMR_Requestedshipment.recipient = fCMR_Recipient;
             fCMR_Requestedshipment.shipper = fCMR_Shipper;
@@ -114,6 +115,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentC
                 paymentType = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("paymentType").ToLower())).First().Value
             };
             fCMR_Requestedshipment.preferredCurrency = chargesRootobject.Charges.Header.Currency;
+            //fCMR_Requestedshipment.preferredCurrency = "INR";
 
             fCMR_Rootobject.requestedShipment = fCMR_Requestedshipment;
 
@@ -122,6 +124,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentC
                finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("CarrierCode").ToLower())).First().Value
             };
             Result = Newtonsoft.Json.JsonConvert.SerializeObject(fCMR_Rootobject);
+
             return Result;
         }
     }

@@ -161,6 +161,7 @@ namespace WEB_API_2024.Controllers
             var APITokenNo = "";
             var UserEmail = "";
             var LiveStatus = "";
+            var ErrorCheck = "";
             MasterChargeResponse ss1 = new MasterChargeResponse();
             bool ActiveAPI = false;
             try
@@ -240,23 +241,41 @@ namespace WEB_API_2024.Controllers
                                 }
                                 else if (AgentCode.ToUpper().Equals("FEDSW") || AgentCode.ToUpper().Equals("FEDLW"))
                                 {
-                                    logMaster = FedexChargeMaster.FedexShippingChargeCreate(Convert.ToBoolean(LiveStatus), wwwPath, finalAgentMaster, shippmentCharge);
-                                    var FinalResult = JsonConvert.DeserializeObject<MasterChargeResponse>(logMaster.MasterResult);
-
-                                    DataList.Add(new ChargeResponseDatum()
+                                    try
                                     {
-                                        AgentCode = FinalResult.data[0].AgentCode,
-                                        Currency = FinalResult.data[0].Currency,
-                                        TotalCharges = FinalResult.data[0].TotalCharges,
-                                        TotalDuitableCharges = FinalResult.data[0].TotalDuitableCharges,
-                                        TotalTax = FinalResult.data[0].TotalTax,
-                                        AgentStatus = FinalResult.data[0].AgentStatus,
-                                        Message = FinalResult.data[0].Message
-                                    });
-                                    Result.success = FinalResult.data[0].AgentStatus;
+                                        
+                                        logMaster = FedexChargeMaster.FedexShippingChargeCreate(Convert.ToBoolean(LiveStatus), wwwPath, finalAgentMaster, shippmentCharge);
+
+                                        var FinalResult = JsonConvert.DeserializeObject<MasterChargeResponse>(logMaster.MasterResult);
+
+                                        DataList.Add(new ChargeResponseDatum()
+                                        {
+                                            AgentCode = FinalResult.data[0].AgentCode,
+                                            Currency = FinalResult.data[0].Currency,
+
+                                            netFreight = FinalResult.data[0].netFreight,
+                                            FuelSurcharges = FinalResult.data[0].FuelSurcharges,
+                                            OverSizePiece = FinalResult.data[0].OverSizePiece,
+                                            ExportDeclaration = FinalResult.data[0].ExportDeclaration,
+                                            DDPCharges = FinalResult.data[0].DDPCharges,
+                                            GST = FinalResult.data[0].GST,
+                                            FinalFreight= FinalResult.data[0].FinalFreight,
+
+                                            AgentStatus = FinalResult.data[0].AgentStatus,
+                                            Description= FinalResult.data[0].Description,
+                                            Message = FinalResult.data[0].Message
+                                        });
+                                        Result.success = FinalResult.data[0].AgentStatus;
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        Result.errormessage = logMaster.AgentResult;
+                                        //Result.errormessage = ex.Message;
+                                    }
                                 }
                                 else if (AgentCode.ToUpper().Equals("DHL"))
                                 {
+                                  
                                     logMaster = DHLChargeMaster.DHLShippingChargeCreate(Convert.ToBoolean(LiveStatus), wwwPath, finalAgentMaster, shippmentCharge);
                                     var FinalResult = JsonConvert.DeserializeObject<MasterChargeResponse>(logMaster.MasterResult);
 
@@ -264,10 +283,18 @@ namespace WEB_API_2024.Controllers
                                     {
                                         AgentCode = FinalResult.data[0].AgentCode,
                                         Currency = FinalResult.data[0].Currency,
-                                        TotalCharges = FinalResult.data[0].TotalCharges,
-                                        TotalDuitableCharges = FinalResult.data[0].TotalDuitableCharges,
-                                        TotalTax = FinalResult.data[0].TotalTax,
+
+                                        netFreight = FinalResult.data[0].netFreight,
+                                        FuelSurcharges = FinalResult.data[0].FuelSurcharges,
+                                        OverSizePiece = FinalResult.data[0].OverSizePiece,
+                                        ExportDeclaration = FinalResult.data[0].ExportDeclaration,
+                                        DDPCharges = FinalResult.data[0].DDPCharges,
+                                        GST = FinalResult.data[0].GST,
+                                        FinalFreight = FinalResult.data[0].FinalFreight,
+
+                                     
                                         AgentStatus = FinalResult.data[0].AgentStatus,
+                                        Description = FinalResult.data[0].Description,
                                         Message = FinalResult.data[0].Message
                                     });
                                     Result.success = FinalResult.data[0].AgentStatus;
@@ -302,7 +329,8 @@ namespace WEB_API_2024.Controllers
             }
             catch (Exception ex)
             {
-                Result.errormessage = "Request terminated." + ex.Message;
+                Result.errormessage = "Request terminated." + ex.Message;               
+                services.InsertLogMaster(logMaster);
             }
 
             return Ok(Result);

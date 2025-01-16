@@ -27,8 +27,19 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.DHL.Waybill.API
                 string SiteId = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("SiteId").ToLower())).First().Value;
                 string Password = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("Password").ToLower())).First().Value;
                 string ShipperName = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("ShipperName").ToLower())).First().Value;
+                
+                decimal FinalInvoicePrice = Convert.ToDecimal(shippment.ShipmentMaster.Line.Sum(x => x.FinalPrice_INR).ToString());
+                string Shipmentpurpose = "";
+                if (FinalInvoicePrice<= 25000)
+                {
+                     Shipmentpurpose = "CSBIV";
+                }
+                else
+                {
+                     Shipmentpurpose = "CARGO";
+                }
+                //string Shipmentpurpose = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("Shipmentpurpose").ToLower())).First().Value;
 
-                string Shipmentpurpose = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("Shipmentpurpose").ToLower())).First().Value;
                 string ShipperAccNumber = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("ShipperAccNumber").ToLower())).First().Value;
                 string ShippingPaymentType = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("ShippingPaymentType").ToLower())).First().Value;
                 string BillingAccNumber = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("BillingAccNumber").ToLower())).First().Value;
@@ -39,6 +50,14 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.DHL.Waybill.API
                 {
                     SpecialService = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("SpecialService_2").ToLower())).First().Value;
                     TermsOfTrade = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("TermsOfTrade_2").ToLower())).First().Value;
+                }
+                if (shippment.ShipmentMaster.Header.BillToCustomerCode.ToUpper().Equals("0108"))
+                {
+                    if (TermsOfTrade.ToUpper().Equals(finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("TermsOfTrade_3").ToLower())).First().Value.ToUpper()))
+                    {
+                        SpecialService = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("SpecialService_3").ToLower())).First().Value;
+                        TermsOfTrade = finalAgentMaster.GetAgentDetails.Where(x => x.Key.ToLower().Equals(Convert.ToString("TermsOfTrade_3").ToLower())).First().Value;
+                    }
                 }
 
                 string ConsigneeCompName = shippment.ShipmentMaster.Header.DropPersonName;

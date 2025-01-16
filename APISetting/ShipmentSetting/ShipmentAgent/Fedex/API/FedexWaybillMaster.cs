@@ -18,7 +18,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
 
             try
             {
-                var FedexTokenResult = FedexTokenMaster.GetTokenNo(Livestatus, finalAgentMaster);
+                var FedexTokenResult = FedexTokenMaster.GetTokenNo(Livestatus, finalAgentMaster, shippment.ShipmentMaster.Header.LocationCode);
 
                 var DocumentResult = FedexDocumentMaster.FedexDocumentCreate(FedexTokenResult.access_token, Convert.ToBoolean(Livestatus), wwwPath, finalAgentMaster, shippment);
 
@@ -42,7 +42,10 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
                     request.AddHeader("x-customer-transaction-id", "");
                     request.AddHeader("x-locale", "en_US");
                     request.AddHeader("content-type", "application/json");
-                    request.AddHeader("Authorization", "Bearer " + FedexTokenResult.access_token);
+                    if (FedexTokenResult != null && FedexTokenResult.access_token != null)
+                    {
+                        request.AddHeader("Authorization", "Bearer " + FedexTokenResult.access_token);
+                    }
                     request.AddStringBody(FedexRequestData, DataFormat.Json);
                     RestResponse response = client.Execute(request);
                     var FedexResult = response.Content;

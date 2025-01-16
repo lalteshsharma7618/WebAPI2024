@@ -54,10 +54,10 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentC
             public string packagingType { get; set; }
             public List<FCR_Customermessage> customerMessages { get; set; }
             public List<FCR_Ratedshipmentdetail> ratedShipmentDetails { get; set; }
-            public bool anonymouslyAllowable { get; set; }
-            public FCR_Operationaldetail operationalDetail { get; set; }
-            public string signatureOptionType { get; set; }
-            public FCR_Servicedescription serviceDescription { get; set; }
+           // public bool anonymouslyAllowable { get; set; }
+           // public FCR_Operationaldetail operationalDetail { get; set; }
+           // public string signatureOptionType { get; set; }
+           // public FCR_Servicedescription serviceDescription { get; set; }
             public FCR_Commit commit { get; set; }
         }
 

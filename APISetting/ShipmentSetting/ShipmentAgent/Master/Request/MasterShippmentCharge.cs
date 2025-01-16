@@ -15,8 +15,8 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Request
         public class Charges
         {
             public ChargesHeader Header { get; set; }
-            public List<ChargesShippmentLine> Line { get; set; }
-            public List<ChargesShippmentBale> Bale { get; set; }
+            public List<ShippmentLine> Line { get; set; }
+            public List<ShippmentBale> Bale { get; set; }
         }
 
         public class ChargesHeader
@@ -52,6 +52,9 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Request
 
             [StringLength(5)]
             public string DutiableDeclaredCurrency { get; set; }
+
+            [StringLength(5)]
+            public string DeliveryTerms { get; set; }
         }
 
         public class ChargesShippmentLine

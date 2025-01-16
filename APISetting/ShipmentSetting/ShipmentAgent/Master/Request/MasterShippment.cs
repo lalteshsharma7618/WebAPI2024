@@ -30,6 +30,9 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Request
             public string ShipmentType { get; set; }
 
             [StringLength(10)]
+            public string LocationCode { get; set; }
+
+            [StringLength(10)]
             public string OriginArea { get; set; }
 
             public string DocumentPdfInByte { get; set; }
@@ -118,6 +121,8 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Request
             public double InsuranceCharge { get; set; }
             public double TotalIGST { get; set; }
             public decimal GrossWeight { get; set; } //new
+
+            public string BillToCustomerCode { get; set; }
         }
 
         public class ShippmentLine

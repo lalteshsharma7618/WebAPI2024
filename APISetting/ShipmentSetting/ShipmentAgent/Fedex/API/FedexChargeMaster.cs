@@ -7,6 +7,9 @@ using static WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Reques
 using static WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentCharge.Response.FedexChargeMasterResponse;
 using WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Master.Response;
 using WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.ShippmentCharge.Request;
+using Microsoft.AspNetCore.Mvc.Razor;
+using System.ComponentModel;
+using Microsoft.IdentityModel.Tokens;
 
 namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
 {
@@ -19,9 +22,20 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
             FCR_ChargeResponse fCR_ChargeResponse = new FCR_ChargeResponse();
             try
             {
+                logMaster.APIName = "Charge";
+                logMaster.MasterJson = JsonConvert.SerializeObject(chargesRootobject);
+                logMaster.AgentCode = "FEDEX";
+                logMaster.InvoiceNo = chargesRootobject.Charges.Header.InvoiceNumber;
+
+               
                 var FedexTokenResult = FedexTokenMaster.GetTokenNo(Livestatus, finalAgentMaster);
+
+                
+
                 var FedexRequestData = FedexChargeRequestSetting.GetFedexChargeRequestData(finalAgentMaster, chargesRootobject);
                 var FedexFinalJsonData = JsonConvert.SerializeObject(FedexRequestData);
+
+                logMaster.AgentJson = FedexFinalJsonData;
 
                 var FinalPostURL = "https://apis-sandbox.fedex.com";
                 if (Livestatus)
@@ -35,22 +49,23 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
                 var client = new RestClient(options);
                 var request = new RestRequest("/rate/v1/rates/quotes", Method.Post);
                 request.AddHeader("content-type", "application/json");
-                request.AddHeader("Authorization", "Bearer " + FedexTokenResult.access_token);
+                if (FedexTokenResult != null && FedexTokenResult.access_token != null)
+                {
+                    request.AddHeader("Authorization", "Bearer " + FedexTokenResult.access_token);
+                }
                 request.AddStringBody(FedexRequestData, DataFormat.Json);
                 RestResponse response = client.Execute(request);
                 var FedexResult = response.Content;
 
-
+                
 
                 FCR_Rootobject fCR_Rootobject = new FCR_Rootobject();
                 fCR_Rootobject = JsonConvert.DeserializeObject<FCR_Rootobject>(FedexResult);
 
-                logMaster.APIName = "Charge";
-                logMaster.MasterJson = JsonConvert.SerializeObject(chargesRootobject);
+                
                 logMaster.AgentJson = FedexRequestData;
                 logMaster.AgentResult = JsonConvert.SerializeObject(fCR_Rootobject);
-                logMaster.AgentCode = "FEDEX";
-                logMaster.InvoiceNo = chargesRootobject.Charges.Header.InvoiceNumber;
+             
                 logMaster.TrackingNo = "";
                 if (fCR_Rootobject == null || fCR_Rootobject.output == null || fCR_Rootobject.errors != null)
                 {
@@ -93,6 +108,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
                         }
                         foreach (var ratedShipmentDetails_obj in Find_price_FEDEX_INTERNATIONAL_PRIORITY.ratedShipmentDetails)
                         {
+
                             fCR_ChargeResponse.currency = ratedShipmentDetails_obj.currency;
                             fCR_ChargeResponse.customerMessages = customerMessage;
                             fCR_ChargeResponse.serviceName = Find_price_FEDEX_INTERNATIONAL_PRIORITY.serviceName;
@@ -105,29 +121,62 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
                             fCR_ChargeResponse.totalNetCharge = ratedShipmentDetails_obj.totalNetCharge;
                             fCR_ChargeResponse.totalNetChargeWithDutiesAndTaxes = ratedShipmentDetails_obj.totalNetChargeWithDutiesAndTaxes;
                             fCR_ChargeResponse.totalNetFedExCharge = ratedShipmentDetails_obj.totalNetFedExCharge;
-                            fCR_ChargeResponse.totalVatCharge = ratedShipmentDetails_obj.totalVatCharge;
+
+
                         }
-                        DataList.Add(new ChargeResponseDatum()
+
+                        foreach (var ratedShipmentDetails_obj in Find_price_FEDEX_INTERNATIONAL_PRIORITY.ratedShipmentDetails)
                         {
-                            AgentCode = "FEDEX",
-                            Currency = fCR_ChargeResponse.currency,
-                            TotalCharges = fCR_ChargeResponse.totalNetFedExCharge,
-                            TotalDuitableCharges = fCR_ChargeResponse.totalDutiesTaxesAndFees,
-                            TotalTax = fCR_ChargeResponse.totalDutiesAndTaxes,
-                            AgentStatus = true,
-                            Message = "Available"
-                        });
-                        masterChargeResponse.success = fCR_ChargeResponse.success;
+                            if (ratedShipmentDetails_obj.currency.ToUpper().Equals("INR"))
+                            {
+                                foreach (var Data in ratedShipmentDetails_obj.ratedPackages)
+                                {
+                                    double DDPCharges = 0;
+                                    if (chargesRootobject.Charges.Header.DeliveryTerms.ToUpper().Equals("DDP"))
+                                    {
+                                        DDPCharges = 500;
+                                    }                                   
+                                    DataList.Add(new ChargeResponseDatum()
+                                    {
+                                        AgentCode = "FEDEX",
+                                        Currency = ratedShipmentDetails_obj.currency,
+
+                                        netFreight= Data.packageRateDetail.netFreight,
+                                        FuelSurcharges= Convert.ToDouble(Data.packageRateDetail.totalSurcharges),
+                                        OverSizePiece=0,
+                                        ExportDeclaration=0,
+                                        DDPCharges= DDPCharges,
+                                        GST= Data.packageRateDetail.totalTaxes,
+                                        FinalFreight= Convert.ToDouble(Data.packageRateDetail.netCharge)+ DDPCharges,
+
+
+                                        AgentStatus = true,
+                                        Description= JsonConvert.SerializeObject(Data.packageRateDetail),
+                                        Message = "Available-" + chargesRootobject.Charges.Header.Currency
+                                    });
+                                    masterChargeResponse.success = fCR_ChargeResponse.success;
+                                }
+                            }
+                        }
+
+                        //DataList.Add(new ChargeResponseDatum()
+                        //{
+                        //    AgentCode = "FEDEX",
+                        //    Currency = fCR_ChargeResponse.currency,
+                        //    TotalCharges = fCR_ChargeResponse.totalNetFedExCharge,
+                        //    TotalDuitableCharges = fCR_ChargeResponse.totalDutiesTaxesAndFees,
+                        //    TotalTax = fCR_ChargeResponse.totalDutiesAndTaxes,
+                        //    AgentStatus = true,
+                        //    Message = "Available"
+                        //});
+                        //masterChargeResponse.success = fCR_ChargeResponse.success;
                     }
                     else
                     {
                         DataList.Add(new ChargeResponseDatum()
                         {
                             AgentCode = "FEDEX",
-                            Currency = chargesRootobject.Charges.Header.Currency,
-                            TotalCharges = fCR_ChargeResponse.totalNetFedExCharge,
-                            TotalDuitableCharges = fCR_ChargeResponse.totalDutiesTaxesAndFees,
-                            TotalTax = fCR_ChargeResponse.totalDutiesAndTaxes,
+                            Currency = chargesRootobject.Charges.Header.Currency,                          
                             AgentStatus = false,
                             Message = fCR_ChargeResponse.message
                         });
@@ -138,10 +187,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
                     DataList.Add(new ChargeResponseDatum()
                     {
                         AgentCode = "FEDEX",
-                        Currency = chargesRootobject.Charges.Header.Currency,
-                        TotalCharges = fCR_ChargeResponse.totalNetFedExCharge,
-                        TotalDuitableCharges = fCR_ChargeResponse.totalDutiesTaxesAndFees,
-                        TotalTax = fCR_ChargeResponse.totalDutiesAndTaxes,
+                        Currency = chargesRootobject.Charges.Header.Currency,                       
                         AgentStatus = false,
                         Message = fCR_ChargeResponse.message
                     });
