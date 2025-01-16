@@ -28,7 +28,7 @@ namespace WEB_API_2024.APISetting.ShipmentSetting.ShipmentAgent.Fedex.API
                 logMaster.InvoiceNo = chargesRootobject.Charges.Header.InvoiceNumber;
 
                
-                var FedexTokenResult = FedexTokenMaster.GetTokenNo(Livestatus, finalAgentMaster);
+                var FedexTokenResult = FedexTokenMaster.GetTokenNo(Livestatus, finalAgentMaster,"");
 
                 
 
